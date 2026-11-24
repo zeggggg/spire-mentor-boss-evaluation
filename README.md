@@ -1,10 +1,12 @@
-# Can a boss specialist win fights the original game AI loses?
+# Testing a boss specialist in Slay the Spire 2
 
-Playing Slay the Spire 2, I was surprised by how often the open-source spire-mentor agent won. I proposed training separate specialists for difficult bosses. This repository follows one candidate through its last development check against the Test Subject boss. The specialist rescued three fights and lost four that the baseline had won. On that evidence, I kept the baseline.
+As a player, I was surprised by how often the open-source *spire-mentor* agent won. I wondered whether practice against a single difficult boss could help it win fights it usually lost. Against the Test Subject boss, **the specialist rescued three fights and lost four that the original agent had won**. I kept the original agent.
 
-## The comparison
+## How I tested the idea
 
-Both agents started from the same combat state, used the same search budget of 8,000 simulations per decision, and differed in the rollout network used by search. A rollout network guides simulated continuations while the agent evaluates a move. Each of 40 starts was replayed twice per agent, giving 80 paired comparisons from 18 original game seeds. Repeated fights from a given seed share game history.
+The agent uses a search algorithm to choose its next move. During search, a rollout network helps it play out possible continuations. The experiment swapped the original rollout network for a specialist trained for Test Subject. Both agents started each comparison in the same combat state and had the same budget of 8,000 simulations per decision.
+
+I wanted to count both kinds of changes. A replay where the specialist rescued a loss was just as relevant as one where it turned a win into a loss.
 
 | Difficulty | Pairs | Both win | Baseline only | Specialist only | Both lose |
 |---|---:|---:|---:|---:|---:|
@@ -12,12 +14,18 @@ Both agents started from the same combat state, used the same search budget of 8
 | 10 | 48 | 14 | 1 | 2 | 31 |
 | All | 80 | 28 | 4 | 3 | 45 |
 
-The 73 agreements show why I wanted to see *which* fights changed. The candidate won 31 fights overall and the baseline won 32. The specialist fell short of the criterion to advance, so the separate test set remained unused. These results cover one boss during development. Full-game performance is a separate question.
+These 80 pairs came from **40 combat starts across 18 game seeds**, with two repeats per start. The agents agreed on 73 outcomes. The other seven gave me little reason to advance the specialist to the reserved test set. This comparison measures performance in one boss fight. A claim about winning more full games would need a separate experiment.
 
-## Reproduce the table
+## Reproduce the result
 
-Run `python3 summarize.py` from this directory. It uses the Python standard library. Each CSV row pairs the original agent and the TestSubject-B candidate by combat start and repeat, with 1 for a combat win and 0 for a loss. The export was checked against SHA-256 hashes for all 160 source replay logs. It contains the outcomes needed to recompute the table.
+Run the following command from the repository root with Python 3. It prints the table above and counts the distinct starts and seeds.
 
-## Credits
+```sh
+python3 summarize.py
+```
 
-I proposed encounter-specific specialization based on my experience with the game. I used AI assistance for implementation, simulation, analysis, and preparing this write-up. The underlying engine, search algorithm and original agent come from Thomas Friedel's open-source project. [Upstream spire-mentor](https://github.com/tfriedel/spire-mentor)
+The CSV contains one row per start and repeat. The last two columns record whether each agent won (1) or lost (0). The export was verified against the SHA-256 hashes of all 160 source replay logs. [Paired outcomes](data/test_subject_pairs.csv) · [Analysis script](summarize.py)
+
+## My contribution
+
+I proposed specializing the agent by encounter, drawing on my experience playing the game. I used AI tools for implementation, simulation, analysis, and this write-up. Thomas Friedel's project supplied the game engine, search algorithm, and original agent. [Upstream spire-mentor](https://github.com/tfriedel/spire-mentor)
